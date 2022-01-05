@@ -1,5 +1,6 @@
 build:
-	go build ./cmd/web
+	go build -o web ./cmd/web
+	chmod +x web
 
 run:
 	./web
