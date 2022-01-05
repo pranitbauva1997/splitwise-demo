@@ -13,7 +13,7 @@ func isValidEmail(email string) bool {
 	return r.MatchString(email)
 }
 
-func isSignUpInputValid(firstName, lastName, username, email, password, passwordRepeat string) bool {
+func isSignUpInputValid(firstName, lastName, username, email string) bool {
 	// TODO: add more validation
 	return true
 }

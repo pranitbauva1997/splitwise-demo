@@ -6,19 +6,19 @@ import (
 
 func TestSignUpInput(t *testing.T) {
 	// valid input
-	val := isSignUpInputValid("A", "B", "abc", "a@b.com", "xyz", "xyz")
+	val := isSignUpInputValid("A", "B", "abc", "a@b.com")
 	if !val {
 		t.Errorf("should be a valid input")
 	}
 
 	// invalid input
-	val = isSignUpInputValid("A", "B", "abc", "a@b.com", "xyz", "zyx")
+	val = isSignUpInputValid("A", "B", "abc", "a@b.com")
 	if val {
 		t.Errorf("shouldn't be a valid input")
 	}
 
 	// invalid input
-	val = isSignUpInputValid("A", "B", "abc", "a@b.com", "", "")
+	val = isSignUpInputValid("A", "B", "abc", "a@b.com")
 	if val {
 		t.Errorf("shouldn't be a valid input")
 	}

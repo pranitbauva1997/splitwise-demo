@@ -20,7 +20,7 @@ create_db:
 	psql -U postgres -c 'CREATE DATABASE splitwise_demo_test;'
 
 create_db_tables:
-	psql -U postgres -d loan_module_test -f migrations/pg/0001_init.up.sql
+	psql -U postgres -d splitwise_demo_test -f migrations/pg/0001_init.up.sql
 
 destroy_db:
 	psql -U postgres -c 'DROP DATABASE splitwise_demo_test;'

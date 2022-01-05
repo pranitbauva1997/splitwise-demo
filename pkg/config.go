@@ -50,7 +50,7 @@ func Init() (*Application, error) {
 		Port:     "5432",
 		User:     "postgres",
 		Password: "",
-		DBName:   "loan_module_test",
+		DBName:   "splitwise_demo_test",
 	}
 
 	app := &Application{

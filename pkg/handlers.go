@@ -15,7 +15,7 @@ func homeGet(w http.ResponseWriter, _ *http.Request, _ *Application) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set(ContentType, "application/json")
+	w.Header().Set(ContentType, ContentType_ApplicationJson)
 	_, _= w.Write(buf)
 }
 
@@ -24,11 +24,7 @@ func home(app *Application) http.HandlerFunc {
 		app.Log.info.Println("calling the home route")
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", "GET")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			_, err := w.Write([]byte("Method not allowed"))
-			if err != nil {
-				app.Log.err.Println("error while writing the message to response body:", err)
-			}
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		}
 		if r.URL.Path != "/" {
@@ -64,12 +60,22 @@ func signUp(app *Application) http.HandlerFunc {
 		if r.Method == http.MethodPost {
 			SignUpPost(w, r, app)
 		} else {
-			w.Header().Set("Allow", "GET, POST")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			_, err := w.Write([]byte("Method not allowed"))
-			if err != nil {
-				log.Println("error while writing the message to response body:", err)
-			}
+			w.Header().Set("Allow", "POST")
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
+	}
+}
+
+
+func allUsers(app *Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			allUsersGet(w, r, app)
+		} else {
+			w.Header().Set("Allow", "GET")
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
 		}
 	}
 }

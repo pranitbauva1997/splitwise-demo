@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -10,75 +11,68 @@ func SignUpPost(w http.ResponseWriter, r *http.Request, app *Application) {
 	lastName := r.FormValue("lname")
 	username := r.FormValue("username")
 	email := r.FormValue("email")
-	password := r.FormValue("password")
-	passwordRepeat := r.FormValue("password_repeat")
 
-	logRequest := func() {
-		log.Print("firstName:", firstName, ";", "lastName:", lastName, ";", "username:", username, ";",
-			"email:", email, ";", "username:", username, ";", "password:", password, ";", "passwordRepeat:", passwordRepeat)
-	}
-
-	badRequestErrorHandle := func(message string) {
-		w.WriteHeader(http.StatusBadRequest)
-		_, err := w.Write([]byte(message))
-		if err != nil {
-			log.Println("error while writing message to response body:", err)
-		}
+	badRequestErrorHandle := func() {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	}
 
 	internalServerErrorHandle := func() {
-		logRequest()
-		w.WriteHeader(http.StatusInternalServerError)
-		_, err := w.Write([]byte("Internal Server Error"))
-		if err != nil {
-			log.Println("error while writing message to response body:", err)
-		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
 	// Validate if we want to create a user
-	if !isSignUpInputValid(firstName, lastName, username, email, password, passwordRepeat) {
-		logRequest()
-		badRequestErrorHandle("Bad Request")
+	if !isSignUpInputValid(firstName, lastName, username, email) {
+		badRequestErrorHandle()
 		return
 	}
 
 	isUsernameAvailable, err := app.StorageClient.IsUsernameAvailable(username)
 	if err != nil {
-		logRequest()
 		log.Println("couldn't query db to check if username is available:", err)
 		internalServerErrorHandle()
 		return
 	}
 
 	if !isUsernameAvailable {
-		logRequest()
 		log.Println(username, "is already taken")
-		badRequestErrorHandle("Username already taken")
+		badRequestErrorHandle()
 		return
 	}
 
 	isEmailAvailable, err := app.StorageClient.IsEmailAvailable(email)
 	if err != nil {
-		logRequest()
 		log.Println("couldn't query db to check if email is available:", err)
 		internalServerErrorHandle()
 		return
 	}
 
 	if !isEmailAvailable {
-		logRequest()
 		log.Println(email, "is already taken")
-		badRequestErrorHandle("Email already taken")
+		badRequestErrorHandle()
 		return
 	}
 
 	err = app.StorageClient.InsertUser(firstName, lastName, username, email)
 	if err != nil {
-		logRequest()
 		log.Println("couldn't insert user in db:", err)
 		internalServerErrorHandle()
 		return
 	}
 
-	// TODO: Show a response
+	type Status struct {
+		Message string `json:"message"`
+	}
+	buf, _:= json.Marshal(Status{Message: "success"})
+	w.Header().Set(ContentType, ContentType_ApplicationJson)
+	_, _ = w.Write(buf)
+}
+
+func allUsersGet(w http.ResponseWriter, _ *http.Request, app *Application) {
+	allUsers, err := app.StorageClient.GetAllUsers()
+	if err != nil {
+		app.Log.err.Printf("could't get all users from db: %s", err)
+	}
+	buf, _ := json.Marshal(allUsers)
+	w.Header().Set(ContentType, ContentType_ApplicationJson)
+	_, _ = w.Write(buf)
 }

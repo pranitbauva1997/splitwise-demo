@@ -14,6 +14,7 @@ func initRoutes(app *Application) http.Handler {
 	mux.Handle(HomeRoute, home(app))
 	mux.Handle(DashboardRoute, dashboard(app))
 	mux.Handle(SignUpRoute, signUp(app))
+	mux.Handle(AllUsersRoute, allUsers(app))
 
 	middlewareBeforeRouting := alice.New(recoverPanic, logRequest, secureHeaders, makeSwaggerCompatible)
 	return middlewareBeforeRouting.Then(mux)

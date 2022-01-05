@@ -17,3 +17,45 @@ paths:
       responses:
         '200':    # status code
           description: Ok
+
+  /users/all:
+    get:
+      summary: Get a list of all users
+      description: Helps in getting to know all the users on the platform
+      responses:
+        '200': # status code
+          description: Ok
+        '500':
+          description: Internal Server Error
+
+
+  /users/signup:
+    post:
+      summary: Sign Up
+      description: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                fname: # <!--- form field name
+                  type: string
+                lname: # <!--- form field name
+                  type: string
+                username:          # <!--- form field name
+                  type: string
+                email:    # <!--- form field name
+                  type: string
+              required:
+                - fname
+                - username
+                - email
+      responses:
+        '200':
+          description: Ok
+        '500':
+          description: Internal Server Error
+        '405':
+          description: Invalid HTTP Method

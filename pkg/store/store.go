@@ -32,6 +32,7 @@ type PgStorage struct {
 	isUsernameAvailableQuery string
 	isEmailAvailableQuery    string
 	isUserValid              string
+	allUsersQuery            string
 }
 
 func buildDSN(c *PGConfig) string {
@@ -68,7 +69,7 @@ func Init(c PGConfig) (*PgStorage, error) {
 	pg.insertUserQuery, _, err = pg.psql.
 		Insert("users").
 		Columns("first_name", "last_name", "username", "email", "created_at", "updated_at").
-		Values("$1", "$2", "$3", "$4", "$6", "$7").ToSql()
+		Values("$1", "$2", "$3", "$4", "$5", "$6").ToSql()
 	if err != nil {
 		log.Println("couldn't construct insertUserQuery:", err)
 		return &pg, err
@@ -104,6 +105,15 @@ func Init(c PGConfig) (*PgStorage, error) {
 		return &pg, err
 	}
 
+	pg.allUsersQuery, _, err = pg.psql.
+		Select("id", "first_name", "last_name", "username", "email").
+		From("users").
+		Where(sq.Eq{"is_deleted": "$1"}).ToSql()
+	if err != nil {
+		log.Println("couldn't construct isUserValid:", err)
+		return &pg, err
+	}
+
 	return &pg, nil
 }
 
@@ -118,8 +128,7 @@ func (pg *PgStorage) InsertUser(firstName, lastName, username, email string) err
 	currentTime := time.Now()
 	_, err := pg.client.Exec(pg.insertUserQuery, firstName, lastName, username, email, currentTime, currentTime)
 	if err != nil {
-		log.Println("couldn't execute InsertUser query:", err)
-		return err
+		return fmt.Errorf("couldn't execute InsertUser query: %w", err)
 	}
 	return nil
 }
@@ -128,8 +137,7 @@ func (pg *PgStorage) IsUsernameAvailable(username string) (bool, error) {
 	var count int
 	err := pg.client.QueryRow(pg.isUsernameAvailableQuery, username).Scan(&count)
 	if err != nil {
-		log.Println("couldn't execute IsUsernameAvailable query:", err)
-		return false, err
+		return false, fmt.Errorf("couldn't execute IsUsernameAvailable query: %w", err)
 	}
 	return count == 0, nil
 }
@@ -138,8 +146,7 @@ func (pg *PgStorage) IsEmailAvailable(email string) (bool, error) {
 	var count int
 	err := pg.client.QueryRow(pg.isEmailAvailableQuery, email).Scan(&count)
 	if err != nil {
-		log.Println("couldn't execute IsEmailAvailable query:", err)
-		return false, err
+		return false, fmt.Errorf("couldn't execute IsEmailAvailable query: %w", err)
 	}
 	return count == 0, nil
 }
@@ -151,8 +158,30 @@ func (pg *PgStorage) IsUserValid(userID int64) (bool, error) {
 		return false, err
 	}
 	if err != nil {
-		log.Println("couldn't execute IsUserValid query:", err)
+		return false, fmt.Errorf("couldn't execute IsUserValid query: %w", err)
 	}
 
 	return isValid, nil
+}
+
+func (pg *PgStorage) GetAllUsers() ([]UserResponse, error) {
+	allUsers := make([]UserResponse, 0)
+	rows, err := pg.client.Query(pg.allUsersQuery, false)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't execute GetAllUsers query: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user UserResponse
+		err = rows.Scan(&user.Id, &user.FirstName, &user.LastName, &user.UserName, &user.Email)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't parse data returned by GetAllUsers query: %w", err)
+		}
+		allUsers = append(allUsers, user)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("coudn't read the data returned by GetAllUsers query: %w", err)
+	}
+
+	return allUsers, nil
 }
