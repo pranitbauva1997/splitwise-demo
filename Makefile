@@ -55,3 +55,6 @@ staticcheck:
 	staticcheck ./...
 
 all-static-checks: vet lint staticcheck shellcheck
+
+docker-pull-swagger:
+	docker pull swaggerapi/swagger-ui

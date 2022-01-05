@@ -1,0 +1,20 @@
+package pkg
+
+import (
+	"net/http"
+
+	"github.com/justinas/alice"
+)
+
+func initRoutes(app *Application) http.Handler {
+	mux := http.NewServeMux()
+	//staticFileServer := http.FileServer(http.Dir("./ui/static"))
+	//mux.Handle("/static/", http.StripPrefix("/static", staticFileServer))
+
+	mux.Handle(HomeRoute, home(app))
+	mux.Handle(DashboardRoute, dashboard(app))
+	mux.Handle(SignUpRoute, signUp(app))
+
+	middlewareBeforeRouting := alice.New(recoverPanic, logRequest, secureHeaders)
+	return middlewareBeforeRouting.Then(mux)
+}
