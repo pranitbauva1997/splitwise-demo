@@ -59,3 +59,30 @@ paths:
           description: Internal Server Error
         '405':
           description: Invalid HTTP Method
+
+  /bills/add:
+    post:
+      summary: New Bill
+      description: Add a new bill to split it with friends
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                created_by:
+                  type: integer
+                amount:
+                  type: integer
+                transactions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      owed_to:
+                        type: integer
+                      owes:
+                        type: integer
+                      amount:
+                        type: integer

@@ -33,6 +33,8 @@ type PgStorage struct {
 	isEmailAvailableQuery    string
 	isUserValid              string
 	allUsersQuery            string
+	addBillQuery             string
+	addTransactionQuery      string
 }
 
 func buildDSN(c *PGConfig) string {
@@ -113,6 +115,24 @@ func Init(c PGConfig) (*PgStorage, error) {
 		log.Println("couldn't construct isUserValid:", err)
 		return &pg, err
 	}
+	pg.addBillQuery, _, err = pg.psql.
+		Insert("bills").
+		Columns("user_id", "amount", "created_at", "updated_at", "is_deleted").
+		Values("$1", "$2", "$3", "$4", "$5").Suffix("RETURNING id").ToSql()
+	if err != nil {
+		log.Println("couldn't construct addBillQuery:", err)
+		return &pg, err
+	}
+	log.Println(pg.addBillQuery)
+	pg.addTransactionQuery, _, err = pg.psql.
+		Insert("transactions").
+		Columns("bill_id", "owed_to", "owes", "amount", "created_at", "updated_at", "is_deleted").
+		Values("$1", "$2", "$3", "$4", "$5", "$6", "$7").ToSql()
+	if err != nil {
+		log.Println("couldn't construct addTransactionQuery:", err)
+		return &pg, err
+	}
+
 
 	return &pg, nil
 }
@@ -184,4 +204,33 @@ func (pg *PgStorage) GetAllUsers() ([]UserResponse, error) {
 	}
 
 	return allUsers, nil
+}
+
+func (pg *PgStorage) AddBill(bill AddBillRequest) error {
+	currentTime := time.Now()
+	var billId int64
+
+	tx, err := pg.client.Beginx()
+	if err != nil {
+		return fmt.Errorf("couldn't start the DB transaction for AddBill query: %w", err)
+	}
+	err = tx.QueryRow(pg.addBillQuery, bill.CreatedBy, bill.Amount, currentTime, currentTime, false).Scan(&billId)
+	if err != nil {
+		_ = tx.Rollback()
+		return fmt.Errorf("couldn't execute AddBill query: %w", err)
+	}
+
+	for _, t := range bill.Transactions {
+		_, err = pg.client.Exec(pg.addTransactionQuery, billId, t.OwedTo, t.Owes, t.Amount, currentTime, currentTime, false)
+		if err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("couldn't execute AddTransaction query: %w", err)
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("couldn't commit the transaction for AddBill query: %w", err)
+	}
+
+	return nil
 }

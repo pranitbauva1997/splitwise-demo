@@ -67,11 +67,26 @@ func signUp(app *Application) http.HandlerFunc {
 	}
 }
 
-
 func allUsers(app *Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			allUsersGet(w, r, app)
+		} else {
+			w.Header().Set("Allow", "GET")
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
+	}
+}
+
+func addBill(app *Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			addBillPost(w, r, app)
+		} else if r.Method == http.MethodOptions {
+			w.Header().Set("Allow", "POST")
+			http.Error(w, http.StatusText(http.StatusOK), http.StatusOK)
+			return
 		} else {
 			w.Header().Set("Allow", "GET")
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)

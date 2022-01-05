@@ -9,3 +9,25 @@ CREATE TABLE IF NOT EXISTS users
     updated_at TIMESTAMPTZ NOT NULL,
     is_deleted BOOL DEFAULT FALSE
 );
+
+CREATE TABLE IF NOT EXISTS bills
+(
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    amount INT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    is_deleted BOOL DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS transactions
+(
+    id BIGSERIAL PRIMARY KEY,
+    bill_id BIGINT NOT NULL,
+    owed_to BIGINT NOT NULL,
+    owes BIGINT NOT NULL,
+    amount INT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    is_deleted BOOL DEFAULT FALSE
+);
