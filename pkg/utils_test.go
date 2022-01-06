@@ -12,13 +12,13 @@ func TestSignUpInput(t *testing.T) {
 	}
 
 	// invalid input
-	val = isSignUpInputValid("A", "B", "abc", "a@b.com")
+	val = isSignUpInputValid("A", "B", "", "a@b.com")
 	if val {
 		t.Errorf("shouldn't be a valid input")
 	}
 
 	// invalid input
-	val = isSignUpInputValid("A", "B", "abc", "a@b.com")
+	val = isSignUpInputValid("A", "B", "abc", "@b.com")
 	if val {
 		t.Errorf("shouldn't be a valid input")
 	}
