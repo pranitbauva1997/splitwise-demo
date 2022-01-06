@@ -101,7 +101,7 @@ func Init(c PGConfig) (*PgStorage, error) {
 	pg.isUserValid, _, err = pg.psql.
 		Select("is_deleted").
 		From("users").
-		Where(sq.Eq{"user_id": "$1"}).
+		Where(sq.Eq{"id": "$1"}).
 		ToSql()
 	if err != nil {
 		log.Println("couldn't construct isUserValid:", err)
@@ -180,8 +180,8 @@ func (pg *PgStorage) IsEmailAvailable(email string) (bool, error) {
 }
 
 func (pg *PgStorage) IsUserValid(userID int64) (bool, error) {
-	var isValid bool
-	err := pg.client.QueryRow(pg.isUserValid, userID).Scan(&isValid)
+	var isDeleted bool
+	err := pg.client.QueryRow(pg.isUserValid, userID).Scan(&isDeleted)
 	if err == sql.ErrNoRows {
 		return false, err
 	}
@@ -189,7 +189,7 @@ func (pg *PgStorage) IsUserValid(userID int64) (bool, error) {
 		return false, fmt.Errorf("couldn't execute IsUserValid query: %w", err)
 	}
 
-	return isValid, nil
+	return !isDeleted, nil
 }
 
 func (pg *PgStorage) GetAllUsers() ([]UserResponse, error) {
