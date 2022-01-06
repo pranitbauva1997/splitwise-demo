@@ -28,7 +28,7 @@ destroy_db:
 install_mac_dependencies: install_dev_dependencies
 	brew install shellcheck
 
-install_ubuntu_dependencies: install_dev_dependencies
+install_ubuntu_dependencies:
 	apt-get update --fix-missing
 	apt-get install shellcheck -y
 
