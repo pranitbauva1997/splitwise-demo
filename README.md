@@ -16,7 +16,7 @@ make install_mac_dependencies
 
 If on Ubuntu:
 ```shell
-make install_ubuntu_dependencies
+sudo make install_ubuntu_dependencies && make install_dev_dependencies
 ```
 
 Setup GitHooks:
