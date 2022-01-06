@@ -58,3 +58,9 @@ all-static-checks: vet lint staticcheck shellcheck
 
 docker-pull-swagger:
 	docker pull swaggerapi/swagger-ui
+
+docker-build:
+	docker build . -t splitwisedemo:latest
+
+docker-run:
+	docker run --network=host -p 8000:8000 splitwisedemo:latest
