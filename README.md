@@ -60,7 +60,7 @@ connecting to the local postgres instance. To fix this, I have to introduce `DB_
 `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` environment variables and then pass
 them into the docker run command and set the `DB_HOST` as `host.docker.internal` but
 I haven't found the time to implement this. Currently, the connection parameters are
-hard-coded.
+hard-coded which also have to be picked up from environment variables.
 
 After the `web` process is up and running, it's time to set up Swagger to interact
 with the server.
