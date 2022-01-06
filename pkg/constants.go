@@ -1,11 +1,11 @@
 package pkg
 
 const (
-	HomeRoute      string = "/"
-	DashboardRoute string = "/dashboard"
-	SignUpRoute    string = "/users/signup"
-	AllUsersRoute  string = "/users/all"
-	AddBill        string = "/bills/add"
+	HomeRoute     string = "/"
+	SummaryRoute  string = "/summary"
+	SignUpRoute   string = "/users/signup"
+	AllUsersRoute string = "/users/all"
+	AddBill       string = "/bills/add"
 )
 
 const ContentType string = "Content-Type"

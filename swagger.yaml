@@ -86,3 +86,20 @@ paths:
                         type: integer
                       amount:
                         type: integer
+
+  /summary:
+    get:
+      summary: Get a list of all users
+      description: Helps in getting to know all the users on the platform
+      parameters:
+        - in: query
+          name: user_id
+          schema:
+            type: integer
+      responses:
+        '200': # status code
+          description: Ok
+        '405':
+          description: Method Not Allowed
+        '500':
+          description: Internal Server Error

@@ -11,8 +11,8 @@ func initRoutes(app *Application) http.Handler {
 	//staticFileServer := http.FileServer(http.Dir("./ui/static"))
 	//mux.Handle("/static/", http.StripPrefix("/static", staticFileServer))
 
+	mux.Handle(SummaryRoute, summary(app))
 	mux.Handle(HomeRoute, home(app))
-	mux.Handle(DashboardRoute, dashboard(app))
 	mux.Handle(SignUpRoute, signUp(app))
 	mux.Handle(AllUsersRoute, allUsers(app))
 	mux.Handle(AddBill, addBill(app))

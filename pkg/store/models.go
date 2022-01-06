@@ -19,3 +19,9 @@ type Transaction struct {
 	Owes int64 `json:"owes"`
 	Amount int `json:"amount"`
 }
+
+type UserTransaction struct {
+	OwedTo int64
+	Owes int64
+	Amount int
+}

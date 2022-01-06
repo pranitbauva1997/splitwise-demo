@@ -35,6 +35,7 @@ type PgStorage struct {
 	allUsersQuery            string
 	addBillQuery             string
 	addTransactionQuery      string
+	userTransactionsQuery    string
 }
 
 func buildDSN(c *PGConfig) string {
@@ -123,7 +124,6 @@ func Init(c PGConfig) (*PgStorage, error) {
 		log.Println("couldn't construct addBillQuery:", err)
 		return &pg, err
 	}
-	log.Println(pg.addBillQuery)
 	pg.addTransactionQuery, _, err = pg.psql.
 		Insert("transactions").
 		Columns("bill_id", "owed_to", "owes", "amount", "created_at", "updated_at", "is_deleted").
@@ -132,7 +132,15 @@ func Init(c PGConfig) (*PgStorage, error) {
 		log.Println("couldn't construct addTransactionQuery:", err)
 		return &pg, err
 	}
-
+	pg.userTransactionsQuery, _, err = pg.psql.
+		Select("owed_to", "owes", "amount").
+		From("transactions").
+		Where("(owed_to=$1 OR owes=$1) AND (owed_to != owes) AND is_deleted=false;").ToSql()
+	if err != nil {
+		log.Println("couldn't construct userTransactionsQuery:", err)
+		return &pg, err
+	}
+	log.Println(pg.userTransactionsQuery)
 
 	return &pg, nil
 }
@@ -233,4 +241,26 @@ func (pg *PgStorage) AddBill(bill AddBillRequest) error {
 	}
 
 	return nil
+}
+
+func (pg *PgStorage) UserTransactions(userId int64) ([]UserTransaction, error) {
+	userTransactions := make([]UserTransaction, 0)
+	rows, err := pg.client.Query(pg.userTransactionsQuery, userId)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't execute UserTransactions query: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var userTransaction UserTransaction
+		err = rows.Scan(&userTransaction.OwedTo, &userTransaction.Owes, &userTransaction.Amount)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't parse data returned by UserTransactions query: %w", err)
+		}
+		userTransactions = append(userTransactions, userTransaction)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("coudn't read the data returned by UserTransactions query: %w", err)
+	}
+
+	return userTransactions, nil
 }

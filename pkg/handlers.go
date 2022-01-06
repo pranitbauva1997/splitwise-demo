@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -35,22 +34,14 @@ func home(app *Application) http.HandlerFunc {
 	}
 }
 
-func dashboardGet(w http.ResponseWriter, r *http.Request, app *Application) {
-	// TODO: Get user_id and show the summary
-}
-
-func dashboard(app *Application) http.HandlerFunc {
+func summary(app *Application) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", "GET")
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			_, err := w.Write([]byte("Method not allowed"))
-			if err != nil {
-				log.Println("error while writing the message to response body:", err)
-			}
+			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 			return
 		} else {
-			dashboardGet(w, r, app)
+			summaryGet(w, r, app)
 		}
 	}
 }
