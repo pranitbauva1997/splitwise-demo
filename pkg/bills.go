@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/pranitbauva1997/splitwise-demo/pkg/store"
 	"io"
 	"net/http"
@@ -34,6 +35,27 @@ func CalculateUnsettledBalances(transactions []store.UserTransaction, userId int
 	return balances
 }
 
+func GetAllUserIds(b store.AddBillRequest) []int64 {
+	userIds := make([]int64, 0)
+	userIds = append(userIds, b.CreatedBy)
+	for _, t := range b.Transactions {
+		userIds = append(userIds, t.OwedTo, t.Owes)
+	}
+
+	return userIds
+}
+
+func CheckUsers(userIds []int64, app *Application) error {
+	for _, v := range userIds {
+		valid, err := app.StorageClient.IsUserValid(v)
+		if err != nil || !valid {
+			return fmt.Errorf("couldn't find the user with user_id=%d: %s", v, err)
+		}
+	}
+
+	return nil
+}
+
 func addBillPost(w http.ResponseWriter, r *http.Request, app *Application) {
 	defer r.Body.Close()
 	if r.Body == nil {
@@ -53,7 +75,17 @@ func addBillPost(w http.ResponseWriter, r *http.Request, app *Application) {
 		return
 	}
 
-	// TODO: validate Bill
+	valid, err := newBill.Validate()
+	if err != nil || !valid {
+		app.Log.err.Printf("couldn't validate the bill: %s", err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if err = CheckUsers(GetAllUserIds(newBill), app); err != nil {
+		app.Log.err.Printf("couldn't validate the bill: %s", err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 
 	err = app.StorageClient.AddBill(newBill)
 	if err != nil {
@@ -72,7 +104,7 @@ func addBillPost(w http.ResponseWriter, r *http.Request, app *Application) {
 
 type UnsettledBalance struct {
 	UserId int64 `json:"user_id"`
-	Amount int `json:"amount"`
+	Amount int   `json:"amount"`
 }
 
 type UnsettledBalancesResponse []UnsettledBalance
@@ -89,7 +121,6 @@ func transformToUnsettledBalancesResponse(balances UnsettledBalances) UnsettledB
 }
 
 func summaryGet(w http.ResponseWriter, r *http.Request, app *Application) {
-	// TODO: Get user_id and show the summary
 	userIdRaw := r.URL.Query().Get("user_id")
 	userId, err := strconv.ParseInt(userIdRaw, 10, 64)
 	if err != nil {

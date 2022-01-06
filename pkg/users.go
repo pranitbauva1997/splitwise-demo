@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 )
 
@@ -28,33 +27,33 @@ func SignUpPost(w http.ResponseWriter, r *http.Request, app *Application) {
 
 	isUsernameAvailable, err := app.StorageClient.IsUsernameAvailable(username)
 	if err != nil {
-		log.Println("couldn't query db to check if username is available:", err)
+		app.Log.err.Println("couldn't query db to check if username is available:", err)
 		internalServerErrorHandle()
 		return
 	}
 
 	if !isUsernameAvailable {
-		log.Println(username, "is already taken")
+		app.Log.err.Println(username, "is already taken")
 		badRequestErrorHandle()
 		return
 	}
 
 	isEmailAvailable, err := app.StorageClient.IsEmailAvailable(email)
 	if err != nil {
-		log.Println("couldn't query db to check if email is available:", err)
+		app.Log.err.Println("couldn't query db to check if email is available:", err)
 		internalServerErrorHandle()
 		return
 	}
 
 	if !isEmailAvailable {
-		log.Println(email, "is already taken")
+		app.Log.err.Println(email, "is already taken")
 		badRequestErrorHandle()
 		return
 	}
 
 	err = app.StorageClient.InsertUser(firstName, lastName, username, email)
 	if err != nil {
-		log.Println("couldn't insert user in db:", err)
+		app.Log.err.Println("couldn't insert user in db:", err)
 		internalServerErrorHandle()
 		return
 	}

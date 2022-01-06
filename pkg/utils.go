@@ -14,6 +14,9 @@ func isValidEmail(email string) bool {
 }
 
 func isSignUpInputValid(firstName, lastName, username, email string) bool {
-	// TODO: add more validation
-	return true
+	if firstName == "" || lastName == "" || username == "" || email == "" {
+		return false
+	}
+
+	return isValidEmail(email)
 }
