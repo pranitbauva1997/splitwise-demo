@@ -25,12 +25,10 @@ create_db_tables:
 destroy_db:
 	psql -U postgres -c 'DROP DATABASE splitwise_demo_test;'
 
-init: setup_githooks install_dev_dependencies
-
-install_mac_dependencies:
+install_mac_dependencies: install_dev_dependencies
 	brew install shellcheck
 
-install_ubuntu_dependencies:
+install_ubuntu_dependencies: install_dev_dependencies
 	apt-get update --fix-missing
 	apt-get install shellcheck -y
 
@@ -58,6 +56,9 @@ all-static-checks: vet lint staticcheck shellcheck
 
 docker-pull-swagger:
 	docker pull swaggerapi/swagger-ui
+
+docker-run-swagger:
+	docker run -p 8080:8080 -e SWAGGER_JSON=/foo/swagger.yaml -v ${PWD}:/foo swaggerapi/swagger-ui
 
 docker-build:
 	docker build . -t splitwisedemo:latest
